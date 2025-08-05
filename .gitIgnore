@@ -1,0 +1,44 @@
+# Unreal build artifacts
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# Local builds & packaged outputs
+WindowsNoEditor/
+LinuxNoEditor/
+MacNoEditor/
+Android_*/
+iOS/
+HTML5/
+
+# Plugins build artifacts
+Plugins/*/Binaries/
+Plugins/*/Intermediate/
+Plugins/*/DerivedDataCache/
+
+# IDE-specific (Visual Studio & Rider)
+.vscode/
+.idea/
+.vs/
+*.suo
+*.user
+*.userprefs
+*.VC.db
+*.VC.opendb
+
+# Logs, backups, temp
+*.log
+*.tlog
+*.tmp
+*_backup/
+*_autosaves/
+
+# OS-specific junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Config (keep only Default*.ini)
+Config/Localization/*
+!Config/Default*.ini
