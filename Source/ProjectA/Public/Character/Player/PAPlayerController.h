@@ -13,5 +13,6 @@ UCLASS()
 class PROJECTA_API APAPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+
 	
 };

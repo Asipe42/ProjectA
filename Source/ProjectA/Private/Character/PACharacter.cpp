@@ -85,8 +85,6 @@ void APACharacter::InitializeInputMappingContext()
 
 void APACharacter::OnMove(const FInputActionValue& Value)
 {
-	// 캐릭터가 바라보는 방향을 기준으로 움직인다.
-	
 	FVector2D MovementVector = Value.Get<FVector2D>();
 	if (Controller)
 	{
