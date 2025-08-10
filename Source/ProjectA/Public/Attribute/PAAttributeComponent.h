@@ -15,14 +15,16 @@ class PROJECTA_API UPAAttributeComponent : public UActorComponent
 public:	
 	UPAAttributeComponent();
 
-	FORCEINLINE float GetCurrentStamina() const { return CurrentStamina; }
-	FORCEINLINE float GetMaxStamina() const { return MaxStamina; }
-
+	/** Stamina Method */
 	void DecreaseStamina(float Amount);
 	void RegenerateStamina(bool bEnable);
 	bool HasEnoughStamina(float Amount) const;
+
+	FORCEINLINE float GetCurrentStamina() const { return CurrentStamina; }
+	FORCEINLINE float GetMaxStamina() const { return MaxStamina; }
 	
 protected:
+	/** Stamina Field */
 	UPROPERTY(EditAnywhere, Category = "Stamina")
 	float CurrentStamina;
 

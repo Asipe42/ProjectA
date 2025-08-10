@@ -24,34 +24,34 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-
+	
 private:
+	/** Initialization */
 	void SetupCamera();
 	void SetupRotation();
 	void SetupCharacterMovement();
 	void SetupAttribute();
-	
-	void InitializeInputSystem() const;
+	void InitializeInputSystem();
 
-	void OnTriggerMove(const FInputActionValue& Value);
-	void OnTriggerLook(const FInputActionValue& Value);
-	void OnTriggerSprint(const FInputActionValue& Value);
-	void OnCompletedSprint(const FInputActionValue& Value);
+	/** Input Handlers */
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+	void StartSprint();
+	void StopSprint();
 
-	void Move(const FVector2D& Value);
-	void Look(const FVector2D& Value);
-	void Sprint() const;
-	void StopSprint() const;
+	/** Check State */
+	bool CanSprint() const;
 
-	bool IsMoving() const;
-	
+private:
+	/** Components */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* SpringArm;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement", meta = (AllowPrivateAccess = "true"))
+	/** Movement */
+	UPROPERTY(EditDefaultsOnly, Category = "Character Movement")
 	FRotator RotationRate = FRotator(0.f, 500.f, 0.f);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character Movement")
@@ -59,10 +59,12 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Character Movement")
 	float DefaultWalkSpeed = 500.f;
-	
+
+	/** Attributes */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute", meta = (AllowPrivateAccess = "true"))
 	UPAAttributeComponent* Attribute;
-	
+
+	/** Input */
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputMappingContext* MappingContext;
 

@@ -32,11 +32,10 @@ void APACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	
 	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APACharacter::OnTriggerMove);
-		EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &APACharacter::OnTriggerLook);
-		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Triggered, this, &APACharacter::OnTriggerSprint);
-
-		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this, &APACharacter::OnCompletedSprint);
+		EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APACharacter::Move);
+		EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &APACharacter::Look);
+		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Triggered, this, &APACharacter::StartSprint);
+		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this, &APACharacter::StopSprint);
 	}
 }
 
@@ -80,7 +79,7 @@ void APACharacter::SetupAttribute()
 	Attribute = CreateDefaultSubobject<UPAAttributeComponent>(TEXT("Attribute"));
 }
 
-void APACharacter::InitializeInputSystem() const
+void APACharacter::InitializeInputSystem()
 {
 	if (const APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
@@ -92,73 +91,53 @@ void APACharacter::InitializeInputSystem() const
 	}
 }
 
-void APACharacter::OnTriggerMove(const FInputActionValue& Value)
+void APACharacter::Move(const FInputActionValue& Value)
 {
 	const FVector2D MovementVector = Value.Get<FVector2D>();
-	Move(MovementVector);
+	if (Controller)
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
+		const FVector Forward = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector Right = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		AddMovementInput(Forward, MovementVector.Y);
+		AddMovementInput(Right, MovementVector.X);
+	}
 }
 
-void APACharacter::OnTriggerLook(const FInputActionValue& Value)
+void APACharacter::Look(const FInputActionValue& Value)
 {
 	const FVector2D LookVector = Value.Get<FVector2D>();
-	Look(LookVector);
-}
-
-void APACharacter::OnTriggerSprint(const FInputActionValue& Value)
-{
-	Sprint();
-}
-
-void APACharacter::OnCompletedSprint(const FInputActionValue& Value)
-{
-	StopSprint();
-}
-
-void APACharacter::Move(const FVector2D& Value)
-{
-	if (Controller == nullptr)
-		return;
-
-	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator YawRotation(0.f, Rotation.Yaw, 0.f);
-	const FVector Forward = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector Right = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-	AddMovementInput(Forward, Value.Y);
-	AddMovementInput(Right, Value.X);
-}
-
-void APACharacter::Look(const FVector2D& Value)
-{
-	if (Controller == nullptr)
-		return;
-
-	AddControllerYawInput(Value.X);
-	AddControllerPitchInput(Value.Y);
-}
-
-void APACharacter::Sprint() const
-{
-	if (Attribute == nullptr)
-		return;
-	
-	if (Attribute->HasEnoughStamina(5.f) && IsMoving())
+	if (Controller)
 	{
-		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-		Attribute->RegenerateStamina(false);
-		Attribute->DecreaseStamina(0.1f);
+		AddControllerYawInput(LookVector.X);
+		AddControllerPitchInput(LookVector.Y);
 	}
-	else
-		StopSprint();
 }
 
-void APACharacter::StopSprint() const
+void APACharacter::StartSprint()
+{
+	if (Attribute)
+	{
+		if (Attribute->HasEnoughStamina(5.f) && CanSprint())
+		{
+			GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+			Attribute->RegenerateStamina(false);
+			Attribute->DecreaseStamina(0.1f);
+		}
+		else
+			StopSprint();
+	}
+}
+
+void APACharacter::StopSprint()
 {
 	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
 	Attribute->RegenerateStamina(true);
 }
 
-bool APACharacter::IsMoving() const
+bool APACharacter::CanSprint() const
 {
 	if (UCharacterMovementComponent* MovementComp = GetCharacterMovement())
 		return MovementComp->Velocity.Size2D() > 0.3f && !MovementComp->GetCurrentAcceleration().IsNearlyZero();
