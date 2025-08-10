@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "Attribute/PAAttributeComponent.h"
+#include "UI/PAMainHUD.h"
 #include "PACharacter.generated.h"
 
 class USpringArmComponent;
@@ -26,12 +27,15 @@ protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	
 private:
-	/** Initialization */
+	/** Setup */
 	void SetupCamera();
 	void SetupRotation();
 	void SetupCharacterMovement();
 	void SetupAttribute();
+
+	/** Initialization */
 	void InitializeInputSystem();
+	void InitializeHUD();
 
 	/** Input Handlers */
 	void Move(const FInputActionValue& Value);
@@ -76,4 +80,11 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* SprintAction;
+
+	/** HUD */
+	UPROPERTY(EditDefaultsOnly, Category = "HUD")
+	TSubclassOf<UPAMainHUD> MainHUDClass;
+
+	UPROPERTY()
+	UPAMainHUD* MainHUDWidget;
 };

@@ -24,6 +24,7 @@ void APACharacter::BeginPlay()
 	Super::BeginPlay();
 
 	InitializeInputSystem();
+	InitializeHUD();
 }
 
 void APACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -91,6 +92,20 @@ void APACharacter::InitializeInputSystem()
 	}
 }
 
+void APACharacter::InitializeHUD()
+{
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (!MainHUDClass)
+			return;
+		
+		MainHUDWidget = CreateWidget<UPAMainHUD>(PC, MainHUDClass);
+		
+		if (MainHUDWidget)
+			MainHUDWidget->AddToViewport();
+	}
+}
+
 void APACharacter::Move(const FInputActionValue& Value)
 {
 	const FVector2D MovementVector = Value.Get<FVector2D>();
@@ -134,7 +149,8 @@ void APACharacter::StartSprint()
 void APACharacter::StopSprint()
 {
 	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
-	Attribute->RegenerateStamina(true);
+	if (Attribute)
+		Attribute->RegenerateStamina(true);
 }
 
 bool APACharacter::CanSprint() const
