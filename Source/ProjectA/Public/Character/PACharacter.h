@@ -33,8 +33,17 @@ private:
 	
 	void InitializeInputSystem() const;
 
-	void OnMove(const FInputActionValue& Value);
-	void OnLook(const FInputActionValue& Value);
+	void OnTriggerMove(const FInputActionValue& Value);
+	void OnTriggerLook(const FInputActionValue& Value);
+	void OnTriggerSprint(const FInputActionValue& Value);
+	void OnCompletedSprint(const FInputActionValue& Value);
+
+	void Move(const FVector2D& Value);
+	void Look(const FVector2D& Value);
+	void Sprint() const;
+	void StopSprint() const;
+
+	bool IsMoving() const;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* SpringArm;
@@ -45,9 +54,15 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement", meta = (AllowPrivateAccess = "true"))
 	FRotator RotationRate = FRotator(0.f, 500.f, 0.f);
 
+	UPROPERTY(EditDefaultsOnly, Category = "Character Movement")
+	float SprintSpeed = 800.f;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Character Movement")
+	float DefaultWalkSpeed = 500.f;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute", meta = (AllowPrivateAccess = "true"))
 	UPAAttributeComponent* Attribute;
-
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputMappingContext* MappingContext;
 
@@ -56,4 +71,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* LookAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UInputAction* SprintAction;
 };
