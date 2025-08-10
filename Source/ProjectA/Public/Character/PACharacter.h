@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
+#include "Attribute/PAAttributeComponent.h"
 #include "PACharacter.generated.h"
 
 class USpringArmComponent;
@@ -28,8 +29,9 @@ private:
 	void SetupCamera();
 	void SetupRotation();
 	void SetupCharacterMovement();
+	void SetupAttribute();
 	
-	void InitializeInputMappingContext();
+	void InitializeInputSystem() const;
 
 	void OnMove(const FInputActionValue& Value);
 	void OnLook(const FInputActionValue& Value);
@@ -42,6 +44,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character Movement", meta = (AllowPrivateAccess = "true"))
 	FRotator RotationRate = FRotator(0.f, 500.f, 0.f);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute", meta = (AllowPrivateAccess = "true"))
+	UPAAttributeComponent* Attribute;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputMappingContext* MappingContext;

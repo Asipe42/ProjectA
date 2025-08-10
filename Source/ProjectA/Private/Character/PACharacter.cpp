@@ -16,13 +16,14 @@ APACharacter::APACharacter()
 	SetupRotation();
 	SetupCamera();
 	SetupCharacterMovement();
+	SetupAttribute();
 }
 
 void APACharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	InitializeInputMappingContext();
+	InitializeInputSystem();
 }
 
 void APACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -71,7 +72,12 @@ void APACharacter::SetupCharacterMovement()
 	characterMovement->RotationRate = RotationRate;
 }
 
-void APACharacter::InitializeInputMappingContext()
+void APACharacter::SetupAttribute()
+{
+	Attribute = CreateDefaultSubobject<UPAAttributeComponent>(TEXT("Attribute"));
+}
+
+void APACharacter::InitializeInputSystem() const
 {
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
