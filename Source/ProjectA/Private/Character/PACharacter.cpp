@@ -109,6 +109,7 @@ void APACharacter::InitializeHUD()
 void APACharacter::Move(const FInputActionValue& Value)
 {
 	const FVector2D MovementVector = Value.Get<FVector2D>();
+
 	if (Controller)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -124,6 +125,7 @@ void APACharacter::Move(const FInputActionValue& Value)
 void APACharacter::Look(const FInputActionValue& Value)
 {
 	const FVector2D LookVector = Value.Get<FVector2D>();
+
 	if (Controller)
 	{
 		AddControllerYawInput(LookVector.X);
@@ -149,6 +151,7 @@ void APACharacter::StartSprint()
 void APACharacter::StopSprint()
 {
 	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
+
 	if (Attribute)
 		Attribute->RegenerateStamina(true);
 }

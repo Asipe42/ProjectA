@@ -17,7 +17,8 @@ class PROJECTA_API UPAMainHUD : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	void OnAttributeChange(EAttributeType AttributeType, float CurrentValue, float MaxValue);
+	virtual void NativeConstruct() override;
+	void OnAttributeChange(const EAttributeType AttributeType, const float Ratio);
 	
 protected:
 	/** Health */
@@ -27,4 +28,7 @@ protected:
 	/** Stamina */
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UPAStatusBarUI* StaminaBar;
+
+private:
+	void BindDelegate();
 };

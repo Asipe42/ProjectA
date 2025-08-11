@@ -3,9 +3,17 @@
 
 #include "UI/PAMainHUD.h"
 
-void UPAMainHUD::OnAttributeChange(EAttributeType AttributeType, const float CurrentValue, const float MaxValue)
+#include "Attribute/PAAttributeComponent.h"
+
+void UPAMainHUD::NativeConstruct()
 {
-	const float Ratio = MaxValue > 0.f ? CurrentValue / MaxValue : 0.f;
+	Super::NativeConstruct();
+
+	BindDelegate();
+}
+
+void UPAMainHUD::OnAttributeChange(EAttributeType AttributeType, float Ratio)
+{
 	switch (AttributeType)
 	{ 
 		case EAttributeType::Health:
@@ -20,5 +28,16 @@ void UPAMainHUD::OnAttributeChange(EAttributeType AttributeType, const float Cur
 		
 		default:
 			break;
+	}
+}
+
+void UPAMainHUD::BindDelegate()
+{
+	if (const APawn* OwningPawn = GetOwningPlayerPawn())
+	{
+		if (UPAAttributeComponent* Attribute = OwningPawn->GetComponentByClass<UPAAttributeComponent>())
+		{
+			Attribute->OnAttributeChange.AddUObject(this, &UPAMainHUD::OnAttributeChange);
+		}
 	}
 }

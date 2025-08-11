@@ -3,9 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PADefine.h"
 #include "Components/ActorComponent.h"
 #include "PAAttributeComponent.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnAttributeChangeSignature, EAttributeType, float);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PROJECTA_API UPAAttributeComponent : public UActorComponent
@@ -22,6 +24,10 @@ public:
 
 	FORCEINLINE float GetCurrentStamina() const { return CurrentStamina; }
 	FORCEINLINE float GetMaxStamina() const { return MaxStamina; }
+	FORCEINLINE float GetStaminaRatio() const { return CurrentStamina / MaxStamina; }
+
+	/** Delegate */
+	FOnAttributeChangeSignature OnAttributeChange;
 	
 protected:
 	/** Stamina Field */

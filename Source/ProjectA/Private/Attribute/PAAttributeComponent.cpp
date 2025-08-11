@@ -3,6 +3,8 @@
 
 #include "Attribute/PAAttributeComponent.h"
 
+#include "PADefine.h"
+
 UPAAttributeComponent::UPAAttributeComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -11,6 +13,7 @@ UPAAttributeComponent::UPAAttributeComponent()
 void UPAAttributeComponent::DecreaseStamina(const float Amount)
 {
 	CurrentStamina = FMath::Clamp(CurrentStamina - Amount, 0, MaxStamina);
+	OnAttributeChange.Broadcast(EAttributeType::Stamina, GetStaminaRatio());
 }
 
 void UPAAttributeComponent::RegenerateStamina(bool bEnable)
@@ -28,6 +31,7 @@ void UPAAttributeComponent::RegenerateStamina(bool bEnable)
 				[this]
 				{
 					CurrentStamina = FMath::Clamp(CurrentStamina + RegenerateStaminaRate, 0.f, MaxStamina);
+					OnAttributeChange.Broadcast(EAttributeType::Stamina, GetStaminaRatio());
 					if (CurrentStamina >= MaxStamina)
 					{
 						GetWorld()->GetTimerManager().ClearTimer(RegenerationTimerHandle);
