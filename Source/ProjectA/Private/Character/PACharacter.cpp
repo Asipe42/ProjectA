@@ -11,7 +11,7 @@
 
 APACharacter::APACharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	SetupRotation();
 	SetupCamera();
@@ -35,8 +35,23 @@ void APACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	{
 		EnhancedInput->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APACharacter::Move);
 		EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &APACharacter::Look);
-		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Triggered, this, &APACharacter::StartSprint);
+		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this, &APACharacter::StartSprint);
 		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this, &APACharacter::StopSprint);
+	}
+}
+
+void APACharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (bIsSprinting && Attribute)
+	{
+		Attribute->DecreaseStamina(5.f * DeltaTime); 
+
+		if (!Attribute->HasEnoughStamina(0.1f))
+		{
+			StopSprint();
+		}
 	}
 }
 
@@ -139,9 +154,9 @@ void APACharacter::StartSprint()
 	{
 		if (Attribute->HasEnoughStamina(5.f) && CanSprint())
 		{
+			bIsSprinting = true;
 			GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 			Attribute->RegenerateStamina(false);
-			Attribute->DecreaseStamina(0.1f);
 		}
 		else
 			StopSprint();
@@ -150,6 +165,7 @@ void APACharacter::StartSprint()
 
 void APACharacter::StopSprint()
 {
+	bIsSprinting = false;
 	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
 
 	if (Attribute)

@@ -25,6 +25,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void Tick(float DeltaTime) override;
 	
 private:
 	/** Setup */
@@ -63,6 +64,9 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Character Movement")
 	float DefaultWalkSpeed = 500.f;
+
+	UPROPERTY()
+	bool bIsSprinting = false;
 
 	/** Attributes */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute", meta = (AllowPrivateAccess = "true"))
