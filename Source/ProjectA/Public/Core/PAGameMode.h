@@ -13,5 +13,4 @@ UCLASS()
 class PROJECTA_API APAGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-	
 };

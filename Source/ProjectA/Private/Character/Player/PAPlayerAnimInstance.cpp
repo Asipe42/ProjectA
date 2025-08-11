@@ -3,6 +3,7 @@
 
 #include "Character/Player/PAPlayerAnimInstance.h"
 
+#include "Character/PACharacter.h"
 #include "GameFramework/Character.h"
 
 void UPAPlayerAnimInstance::NativeInitializeAnimation()
@@ -19,21 +20,27 @@ void UPAPlayerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	UpdateMovementProperties();
 }
 
+void UPAPlayerAnimInstance::AnimNotify_ResetMovementInputEnabled(UAnimNotify* Notify)
+{
+	if (!StateComponent)
+		return;
+
+	if (!AttributeComponent)
+		return;
+
+	AttributeComponent->RegenerateStamina(true);
+	StateComponent->SetMovementEnabled(true);
+	StateComponent->ClearState();
+}
+
 void UPAPlayerAnimInstance::InitializeReference()
 {
-	/*
-	 * 참조 초기화
-	 *	- Proc 1. Character 초기화
-	 *	- Proc 2. MovementComponent 초기화
-	 */
-
-	// Proc 1
-	Character = Cast<ACharacter>(GetOwningActor());
-
-	// Proc 2
+	Character = Cast<APACharacter>(GetOwningActor());
 	if (Character)
 	{
 		MovementComponent = Character->GetCharacterMovement();
+		StateComponent = Character->StateComponent;
+		AttributeComponent = Character->AttributeComponent;
 	}
 }
 

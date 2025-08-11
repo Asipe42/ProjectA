@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "Character/PACharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "State/PAStateComponent.h"
 #include "PAPlayerAnimInstance.generated.h"
 
 /**
@@ -19,12 +21,22 @@ public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
+	/** Animation Notify */
+	UFUNCTION()
+	void AnimNotify_ResetMovementInputEnabled(UAnimNotify* Notify);
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Reference")
-	ACharacter* Character;
+	APACharacter* Character;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Reference")
 	UCharacterMovementComponent* MovementComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Reference")
+	UPAStateComponent* StateComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
+	UPAAttributeComponent* AttributeComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	FVector Velocity;

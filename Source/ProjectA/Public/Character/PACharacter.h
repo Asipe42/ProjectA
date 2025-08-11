@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "Attribute/PAAttributeComponent.h"
+#include "State/PAStateComponent.h"
 #include "UI/PAMainHUD.h"
 #include "PACharacter.generated.h"
 
@@ -22,6 +23,19 @@ class PROJECTA_API APACharacter : public ACharacter
 public:
 	APACharacter();
 
+	/** Components */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	USpringArmComponent* SpringArm;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+	UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute", meta = (AllowPrivateAccess = "true"))
+	UPAAttributeComponent* AttributeComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", meta = (AllowPrivateAccess = "true"))
+	UPAStateComponent* StateComponent;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -31,10 +45,11 @@ private:
 	/** Setup */
 	void SetupCamera();
 	void SetupRotation();
-	void SetupCharacterMovement();
-	void SetupAttribute();
+	void SetupCharacterMovementComponent();
+	void SetupAttributeComponent();
+	void SetupStateComponent();
 
-	/** Initialization */
+	/** Initialize */
 	void InitializeInputSystem();
 	void InitializeHUD();
 
@@ -43,36 +58,10 @@ private:
 	void Look(const FInputActionValue& Value);
 	void StartSprint();
 	void StopSprint();
+	void Rolling();
+	bool IsMoving() const;
 
-	/** Check State */
-	bool CanSprint() const;
-
-private:
-	/** Components */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-	USpringArmComponent* SpringArm;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FollowCamera;
-
-	/** Movement */
-	UPROPERTY(EditDefaultsOnly, Category = "Character Movement")
-	FRotator RotationRate = FRotator(0.f, 500.f, 0.f);
-
-	UPROPERTY(EditDefaultsOnly, Category = "Character Movement")
-	float SprintSpeed = 800.f;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Character Movement")
-	float DefaultWalkSpeed = 500.f;
-
-	UPROPERTY()
-	bool bIsSprinting = false;
-
-	/** Attributes */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attribute", meta = (AllowPrivateAccess = "true"))
-	UPAAttributeComponent* Attribute;
-
-	/** Input */
+	/** Input Actions */
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputMappingContext* MappingContext;
 
@@ -85,10 +74,29 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* SprintAction;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UInputAction* RollingAction;
+
 	/** HUD */
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")
 	TSubclassOf<UPAMainHUD> MainHUDClass;
 
 	UPROPERTY()
 	UPAMainHUD* MainHUDWidget;
+
+	/** Character Movement */
+	UPROPERTY(EditDefaultsOnly, Category = "Character Movement")
+	FRotator RotationRate = FRotator(0.f, 500.f, 0.f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Character Movement")
+	float SprintSpeed = 800.f;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Character Movement")
+	float DefaultWalkSpeed = 500.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Character Movement")
+	UAnimMontage* RollingMontage;
+
+	UPROPERTY()
+	bool bIsSprinting = false;
 };

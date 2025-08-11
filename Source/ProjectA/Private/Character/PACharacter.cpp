@@ -15,8 +15,9 @@ APACharacter::APACharacter()
 
 	SetupRotation();
 	SetupCamera();
-	SetupCharacterMovement();
-	SetupAttribute();
+	SetupCharacterMovementComponent();
+	SetupAttributeComponent();
+	SetupStateComponent();
 }
 
 void APACharacter::BeginPlay()
@@ -37,6 +38,7 @@ void APACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		EnhancedInput->BindAction(LookAction, ETriggerEvent::Triggered, this, &APACharacter::Look);
 		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this, &APACharacter::StartSprint);
 		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this, &APACharacter::StopSprint);
+		EnhancedInput->BindAction(RollingAction, ETriggerEvent::Started, this, &APACharacter::Rolling);
 	}
 }
 
@@ -44,11 +46,11 @@ void APACharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bIsSprinting && Attribute)
+	if (bIsSprinting && AttributeComponent)
 	{
-		Attribute->DecreaseStamina(5.f * DeltaTime); 
+		AttributeComponent->DecreaseStamina(5.f * DeltaTime); 
 
-		if (!Attribute->HasEnoughStamina(0.1f))
+		if (!AttributeComponent->HasEnoughStamina(0.1f))
 		{
 			StopSprint();
 		}
@@ -65,7 +67,7 @@ void APACharacter::SetupRotation()
 void APACharacter::SetupCamera()
 {
 	/*
-	 * 카메라 초기화
+	 * 카메라 설정
 	 *  - Proc 1. SpringArm 생성 및 초기화
 	 *  - Proc 2. Camera 생성 및 초기화
 	 */
@@ -83,16 +85,21 @@ void APACharacter::SetupCamera()
 	FollowCamera->bUsePawnControlRotation = false;
 }
 
-void APACharacter::SetupCharacterMovement()
+void APACharacter::SetupCharacterMovementComponent()
 {
 	UCharacterMovementComponent* MovementComp = GetCharacterMovement();
 	MovementComp->bOrientRotationToMovement = true;
 	MovementComp->RotationRate = RotationRate;
 }
 
-void APACharacter::SetupAttribute()
+void APACharacter::SetupAttributeComponent()
 {
-	Attribute = CreateDefaultSubobject<UPAAttributeComponent>(TEXT("Attribute"));
+	AttributeComponent = CreateDefaultSubobject<UPAAttributeComponent>(TEXT("Attribute"));
+}
+
+void APACharacter::SetupStateComponent()
+{
+	StateComponent = CreateDefaultSubobject<UPAStateComponent>(TEXT("State"));
 }
 
 void APACharacter::InitializeInputSystem()
@@ -123,8 +130,12 @@ void APACharacter::InitializeHUD()
 
 void APACharacter::Move(const FInputActionValue& Value)
 {
+	check(StateComponent);
+	
+	if (!StateComponent->IsMovementEnabled())
+		return;
+	
 	const FVector2D MovementVector = Value.Get<FVector2D>();
-
 	if (Controller)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -140,7 +151,6 @@ void APACharacter::Move(const FInputActionValue& Value)
 void APACharacter::Look(const FInputActionValue& Value)
 {
 	const FVector2D LookVector = Value.Get<FVector2D>();
-
 	if (Controller)
 	{
 		AddControllerYawInput(LookVector.X);
@@ -150,29 +160,48 @@ void APACharacter::Look(const FInputActionValue& Value)
 
 void APACharacter::StartSprint()
 {
-	if (Attribute)
+	check(AttributeComponent);
+	
+	if (AttributeComponent->HasEnoughStamina(5.f) && IsMoving())
 	{
-		if (Attribute->HasEnoughStamina(5.f) && CanSprint())
-		{
-			bIsSprinting = true;
-			GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-			Attribute->RegenerateStamina(false);
-		}
-		else
-			StopSprint();
+		bIsSprinting = true;
+		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+		AttributeComponent->RegenerateStamina(false);
+	}
+	else
+	{
+		StopSprint();
 	}
 }
 
 void APACharacter::StopSprint()
 {
+	check(AttributeComponent);
+	
 	bIsSprinting = false;
 	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
-
-	if (Attribute)
-		Attribute->RegenerateStamina(true);
+	AttributeComponent->RegenerateStamina(true);
 }
 
-bool APACharacter::CanSprint() const
+void APACharacter::Rolling()
+{
+	check(StateComponent);
+	check(AttributeComponent);
+
+	if (!StateComponent->IsMovementEnabled())
+		return;
+
+	if (AttributeComponent->HasEnoughStamina(15.f))
+	{
+		PlayAnimMontage(RollingMontage);
+		AttributeComponent->DecreaseStamina(15.f);
+		AttributeComponent->RegenerateStamina(false);
+		StateComponent->SetMovementEnabled(false);
+		StateComponent->SetState(FGameplayTag::RequestGameplayTag(TEXT("Character.State.Rolling")));
+	}
+}
+
+bool APACharacter::IsMoving() const
 {
 	if (UCharacterMovementComponent* MovementComp = GetCharacterMovement())
 		return MovementComp->Velocity.Size2D() > 0.3f && !MovementComp->GetCurrentAcceleration().IsNearlyZero();
