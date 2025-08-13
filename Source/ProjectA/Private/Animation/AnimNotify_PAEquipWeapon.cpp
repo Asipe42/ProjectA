@@ -30,12 +30,12 @@ void UAnimNotify_PAEquipWeapon::Notify(USkeletalMeshComponent* MeshComp, UAnimSe
 	bool bCombatEnabled = CombatComponent->IsCombatEnabled();
 	FName SocketName;
 
-	if (TargetTag == FGameplayTag::RequestGameplayTag(TEXT("Character.State.Equip")))
+	if (TargetTag == FGameplayTag::RequestGameplayTag(TEXT("Character.Action.Equip")))
 	{
 		bCombatEnabled = true;
 		SocketName = CurrentWeapon->GetEquipSocketName();
 	}
-	else if (TargetTag == FGameplayTag::RequestGameplayTag(TEXT("Character.State.Unequip")))
+	else if (TargetTag == FGameplayTag::RequestGameplayTag(TEXT("Character.Action.Unequip")))
 	{
 		bCombatEnabled = false;
 		SocketName = CurrentWeapon->GetUnequipSocketName();

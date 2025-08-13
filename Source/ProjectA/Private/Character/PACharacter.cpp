@@ -273,8 +273,8 @@ void APACharacter::ToggleCombat()
 		const FGameplayTag MontageTag = FGameplayTag::RequestGameplayTag
 		(
 			CombatComponent->IsCombatEnabled()
-			? TEXT("Character.State.Unequip") // Case A
-			: TEXT("Character.State.Equip")   // Case B
+			? TEXT("Character.Action.Unequip") // Case A
+			: TEXT("Character.Action.Equip")   // Case B
 		);
 		
 		UAnimMontage* Montage = CurrentWeapon->GetMontageByTag(MontageTag);
