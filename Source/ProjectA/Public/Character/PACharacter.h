@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "Attribute/PAAttributeComponent.h"
+#include "Combat/PACombatComponent.h"
 #include "State/PAStateComponent.h"
 #include "UI/PAMainHUD.h"
 #include "PACharacter.generated.h"
@@ -36,6 +37,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", meta = (AllowPrivateAccess = "true"))
 	UPAStateComponent* StateComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	UPACombatComponent* CombatComponent;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
@@ -48,6 +52,7 @@ private:
 	void SetupCharacterMovementComponent();
 	void SetupAttributeComponent();
 	void SetupStateComponent();
+	void SetupCombatComponent();
 
 	/** Initialize */
 	void InitializeInputSystem();
@@ -59,6 +64,7 @@ private:
 	void StartSprint();
 	void StopSprint();
 	void Rolling();
+	void Interact();
 	bool IsMoving() const;
 
 	/** Input Actions */
@@ -76,6 +82,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* RollingAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UInputAction* InteractAction;
 
 	/** HUD */
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")

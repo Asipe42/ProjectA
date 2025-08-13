@@ -8,6 +8,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Interfaces/PAInteractableInterface.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 APACharacter::APACharacter()
 {
@@ -18,6 +20,7 @@ APACharacter::APACharacter()
 	SetupCharacterMovementComponent();
 	SetupAttributeComponent();
 	SetupStateComponent();
+	SetupCombatComponent();
 }
 
 void APACharacter::BeginPlay()
@@ -39,6 +42,7 @@ void APACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Started, this, &APACharacter::StartSprint);
 		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this, &APACharacter::StopSprint);
 		EnhancedInput->BindAction(RollingAction, ETriggerEvent::Started, this, &APACharacter::Rolling);
+		EnhancedInput->BindAction(InteractAction, ETriggerEvent::Started, this, &APACharacter::Interact);
 	}
 }
 
@@ -100,6 +104,11 @@ void APACharacter::SetupAttributeComponent()
 void APACharacter::SetupStateComponent()
 {
 	StateComponent = CreateDefaultSubobject<UPAStateComponent>(TEXT("State"));
+}
+
+void APACharacter::SetupCombatComponent()
+{
+	CombatComponent = CreateDefaultSubobject<UPACombatComponent>(TEXT("Combat"));
 }
 
 void APACharacter::InitializeInputSystem()
@@ -198,6 +207,46 @@ void APACharacter::Rolling()
 		AttributeComponent->RegenerateStamina(false);
 		StateComponent->SetMovementEnabled(false);
 		StateComponent->SetState(FGameplayTag::RequestGameplayTag(TEXT("Character.State.Rolling")));
+	}
+}
+
+void APACharacter::Interact()
+{
+	const FVector StartLocation = GetActorLocation();
+	const FVector EndLocation = StartLocation;
+	constexpr float Radius = 100.f;
+
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(COLLISION_OBJECT_INTERACTION));
+
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+	
+	FHitResult OutHit;
+	const bool bHit = UKismetSystemLibrary::SphereTraceSingleForObjects
+	(
+		this,
+		StartLocation,
+		EndLocation,
+		Radius,
+		ObjectTypes,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForDuration,
+		OutHit,
+		true
+	);
+
+	if (bHit)
+	{
+		AActor* HitActor = OutHit.GetActor();
+		if (HitActor && HitActor->GetClass())
+		{
+			if (IPAInteractableInterface* Interaction = Cast<IPAInteractableInterface>(HitActor))
+			{
+				Interaction->Interact(this);
+			}
+		}
 	}
 }
 
