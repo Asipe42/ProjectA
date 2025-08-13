@@ -20,7 +20,7 @@ public:
 	FORCEINLINE FGameplayTag GetCurrentState() const { return CurrentState; }
 	FORCEINLINE void SetState(const FGameplayTag& NewState) { CurrentState = NewState; }
 	FORCEINLINE void ClearState() { CurrentState = FGameplayTag::EmptyTag; }
-	FORCEINLINE bool IsCurrentState(const FGameplayTag& StateToCheck) const { return CurrentState == StateToCheck; }
+	FORCEINLINE bool IsCurrentStateIn(const FGameplayTagContainer& TagsToCheck) const;
 
 	/** Movement Method */
 	FORCEINLINE bool IsMovementEnabled() const { return bIsMovementEnabled; }

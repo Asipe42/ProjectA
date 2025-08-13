@@ -65,7 +65,10 @@ private:
 	void StopSprint();
 	void Rolling();
 	void Interact();
+	void ToggleCombat();
+	
 	bool IsMoving() const;
+	bool CanToggleCombat() const;
 
 	/** Input Actions */
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
@@ -85,6 +88,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* InteractAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UInputAction* ToggleCombatAction;
 
 	/** HUD */
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")

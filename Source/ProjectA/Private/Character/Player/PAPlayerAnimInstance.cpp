@@ -33,6 +33,14 @@ void UPAPlayerAnimInstance::AnimNotify_ResetMovementInputEnabled(UAnimNotify* No
 	StateComponent->ClearState();
 }
 
+void UPAPlayerAnimInstance::AnimNotify_ResetState(UAnimNotify* Notify)
+{
+	if (!StateComponent)
+		return;
+	
+	StateComponent->ClearState();
+}
+
 void UPAPlayerAnimInstance::InitializeReference()
 {
 	Character = Cast<APACharacter>(GetOwningActor());

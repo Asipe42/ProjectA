@@ -21,11 +21,11 @@ public:
 	virtual void Equip() override;
 	virtual void Unequip() override;
 
+	FORCEINLINE FName GetEquipSocketName() const { return EquipSocketName; }
+	FORCEINLINE FName GetUnequipSocketName() const { return UnequipSocketName;}
+
 	/** Montage Action Method */
 	UAnimMontage* GetMontageByTag(const FGameplayTag& Tag, const int32 Index = 0) const;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment | Animation")
-	UPAWeaponMontageSet* MontageSet;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -38,6 +38,8 @@ protected:
 	FName UnequipSocketName;
 
 	/** Montage Action Field */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment | Animation")
+	UPAWeaponMontageSet* MontageSet;
 	
 	UPROPERTY()
 	UPACombatComponent* CombatComponent;

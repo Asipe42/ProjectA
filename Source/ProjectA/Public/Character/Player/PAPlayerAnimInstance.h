@@ -21,9 +21,12 @@ public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
-	/** Animation Notify */
+	/** Anim Notify */
 	UFUNCTION()
 	void AnimNotify_ResetMovementInputEnabled(UAnimNotify* Notify);
+
+	UFUNCTION()
+	void AnimNotify_ResetState(UAnimNotify* Notify);
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Reference")

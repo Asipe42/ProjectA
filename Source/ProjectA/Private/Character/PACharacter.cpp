@@ -43,6 +43,7 @@ void APACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		EnhancedInput->BindAction(SprintAction, ETriggerEvent::Completed, this, &APACharacter::StopSprint);
 		EnhancedInput->BindAction(RollingAction, ETriggerEvent::Started, this, &APACharacter::Rolling);
 		EnhancedInput->BindAction(InteractAction, ETriggerEvent::Started, this, &APACharacter::Interact);
+		EnhancedInput->BindAction(ToggleCombatAction, ETriggerEvent::Started, this, &APACharacter::ToggleCombat);
 	}
 }
 
@@ -139,7 +140,7 @@ void APACharacter::InitializeHUD()
 
 void APACharacter::Move(const FInputActionValue& Value)
 {
-	check(StateComponent);
+	ensure(StateComponent);
 	
 	if (!StateComponent->IsMovementEnabled())
 		return;
@@ -169,7 +170,7 @@ void APACharacter::Look(const FInputActionValue& Value)
 
 void APACharacter::StartSprint()
 {
-	check(AttributeComponent);
+	ensure(AttributeComponent);
 	
 	if (AttributeComponent->HasEnoughStamina(5.f) && IsMoving())
 	{
@@ -185,7 +186,7 @@ void APACharacter::StartSprint()
 
 void APACharacter::StopSprint()
 {
-	check(AttributeComponent);
+	ensure(AttributeComponent);
 	
 	bIsSprinting = false;
 	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
@@ -194,8 +195,8 @@ void APACharacter::StopSprint()
 
 void APACharacter::Rolling()
 {
-	check(StateComponent);
-	check(AttributeComponent);
+	ensure(StateComponent);
+	ensure(AttributeComponent);
 
 	if (!StateComponent->IsMovementEnabled())
 		return;
@@ -250,10 +251,53 @@ void APACharacter::Interact()
 	}
 }
 
+void APACharacter::ToggleCombat()
+{
+	ensure(CombatComponent);
+	ensure(StateComponent);
+
+	/*
+	 * 전투 토글
+	 * - Case A: 전투가 활성화된 상태 → Unequip 몽타주 재생
+	 * - Case B: 전투가 비활성화된 상태 → Equip 몽타주 재생
+	 */
+
+	const APAWeapon* CurrentWeapon = CombatComponent->GetCurrentWeapon();
+	if (!CurrentWeapon)
+		return;
+	
+	if (CanToggleCombat())
+	{
+		StateComponent->SetState(FGameplayTag::RequestGameplayTag(TEXT("Character.State.GeneralAction")));
+
+		const FGameplayTag MontageTag = FGameplayTag::RequestGameplayTag
+		(
+			CombatComponent->IsCombatEnabled()
+			? TEXT("Character.State.Unequip") // Case A
+			: TEXT("Character.State.Equip")   // Case B
+		);
+		
+		UAnimMontage* Montage = CurrentWeapon->GetMontageByTag(MontageTag);
+		PlayAnimMontage(Montage);
+	}
+}
+
 bool APACharacter::IsMoving() const
 {
 	if (UCharacterMovementComponent* MovementComp = GetCharacterMovement())
 		return MovementComp->Velocity.Size2D() > 0.3f && !MovementComp->GetCurrentAcceleration().IsNearlyZero();
 
 	return false;
+}
+
+bool APACharacter::CanToggleCombat() const
+{
+	ensure(StateComponent);
+
+	FGameplayTagContainer BlockStates;
+	BlockStates.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Character.State.Attacking")));
+	BlockStates.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Character.State.Rolling")));
+	BlockStates.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Character.State.GeneralAction")));
+
+	return !StateComponent->IsCurrentStateIn(BlockStates);
 }
