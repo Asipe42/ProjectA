@@ -24,7 +24,13 @@ class PROJECTA_API APACharacter : public ACharacter
 public:
 	APACharacter();
 
-	/** Components */
+protected:
+	virtual void BeginPlay() override;
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void Tick(float DeltaTime) override;
+
+/** Components */
+public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* SpringArm;
 
@@ -40,13 +46,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UPACombatComponent* CombatComponent;
 
-protected:
-	virtual void BeginPlay() override;
-	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
-	virtual void Tick(float DeltaTime) override;
-	
 private:
-	/** Setup */
 	void SetupCamera();
 	void SetupRotation();
 	void SetupCharacterMovementComponent();
@@ -54,11 +54,8 @@ private:
 	void SetupStateComponent();
 	void SetupCombatComponent();
 
-	/** Initialize */
-	void InitializeInputSystem();
-	void InitializeHUD();
-
-	/** Input Handlers */
+/** Input System */
+protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void StartSprint();
@@ -66,11 +63,14 @@ private:
 	void Rolling();
 	void Interact();
 	void ToggleCombat();
+	void EnterCombat();
+	void Attack();
+	void SpecialAttack();
+	void HeavyAttack();
 	
 	bool IsMoving() const;
 	bool CanToggleCombat() const;
 
-	/** Input Actions */
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputMappingContext* MappingContext;
 
@@ -92,14 +92,28 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* ToggleCombatAction;
 
-	/** HUD */
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UInputAction* AttackAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UInputAction* HeavyAttackAction;
+
+private:
+	void InitializeInputSystem();
+	
+/** HUD */
+protected:
 	UPROPERTY(EditDefaultsOnly, Category = "HUD")
 	TSubclassOf<UPAMainHUD> MainHUDClass;
 
 	UPROPERTY()
 	UPAMainHUD* MainHUDWidget;
 
-	/** Character Movement */
+private:
+	void InitializeHUD();
+	
+/** Character Movement */
+protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Character Movement")
 	FRotator RotationRate = FRotator(0.f, 500.f, 0.f);
 
@@ -114,4 +128,20 @@ private:
 
 	UPROPERTY()
 	bool bIsSprinting = false;
+	
+/** Attack */
+public:
+	void EnableComboWindow();
+	void DisableComboWindow();
+	void FinishAttack();
+	
+protected:
+	void ExecuteComboAttack(const FGameplayTag& AttackType);
+	bool CanExecuteComboAttack(const FGameplayTag& AttackType) const;
+	void DoAttack(const FGameplayTag& AttackType);
+	void ResetCombo();
+
+	int32 ComboCounter = 0;
+	bool bIsComboInputEnabled  = false;
+	bool bIsComboInputQueued  = false;
 };

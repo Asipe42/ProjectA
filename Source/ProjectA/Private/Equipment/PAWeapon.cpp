@@ -27,6 +27,16 @@ UAnimMontage* APAWeapon::GetMontageByTag(const FGameplayTag& Tag, const int32 In
 	return MontageSet->GetMontageByTag(Tag, Index);
 }
 
+float APAWeapon::GetStaminaCost(const FGameplayTag& Tag) const
+{
+	if (const float* Cost = StaminaCostMap.Find(Tag))
+	{
+		return *Cost;
+	}
+
+	return 0.f;
+}
+
 void APAWeapon::BeginPlay()
 {
 	Super::BeginPlay();

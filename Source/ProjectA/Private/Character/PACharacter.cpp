@@ -44,6 +44,11 @@ void APACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		EnhancedInput->BindAction(RollingAction, ETriggerEvent::Started, this, &APACharacter::Rolling);
 		EnhancedInput->BindAction(InteractAction, ETriggerEvent::Started, this, &APACharacter::Interact);
 		EnhancedInput->BindAction(ToggleCombatAction, ETriggerEvent::Started, this, &APACharacter::ToggleCombat);
+		EnhancedInput->BindAction(AttackAction, ETriggerEvent::Started, this, &APACharacter::EnterCombat);
+		EnhancedInput->BindAction(AttackAction, ETriggerEvent::Triggered, this, &APACharacter::SpecialAttack);
+		EnhancedInput->BindAction(AttackAction, ETriggerEvent::Canceled, this, &APACharacter::Attack);
+		EnhancedInput->BindAction(HeavyAttackAction, ETriggerEvent::Started, this, &APACharacter::EnterCombat);
+		EnhancedInput->BindAction(HeavyAttackAction, ETriggerEvent::Completed, this, &APACharacter::HeavyAttack);
 	}
 }
 
@@ -73,18 +78,16 @@ void APACharacter::SetupCamera()
 {
 	/*
 	 * 카메라 설정
-	 *  - Proc 1. SpringArm 생성 및 초기화
-	 *  - Proc 2. Camera 생성 및 초기화
+	 *	Proc 1. SpringArm 생성 및 초기화
+	 *	Proc 2. Camera 생성 및 초기화
 	 */
 
-	// Proc 1
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->TargetArmLength = 400.f;
 	SpringArm->SetRelativeRotation(FRotator(-30.f, 0.f, 0.f));
 	SpringArm->bUsePawnControlRotation = true;
 	
-	// Proc 2
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(SpringArm);
 	FollowCamera->bUsePawnControlRotation = false;
@@ -143,7 +146,9 @@ void APACharacter::Move(const FInputActionValue& Value)
 	ensure(StateComponent);
 	
 	if (!StateComponent->IsMovementEnabled())
+	{
 		return;
+	}
 	
 	const FVector2D MovementVector = Value.Get<FVector2D>();
 	if (Controller)
@@ -199,8 +204,10 @@ void APACharacter::Rolling()
 	ensure(AttributeComponent);
 
 	if (!StateComponent->IsMovementEnabled())
+	{
 		return;
-
+	}
+	
 	if (AttributeComponent->HasEnoughStamina(15.f))
 	{
 		PlayAnimMontage(RollingMontage);
@@ -258,14 +265,16 @@ void APACharacter::ToggleCombat()
 
 	/*
 	 * 전투 토글
-	 * - Case A: 전투가 활성화된 상태 → Unequip 몽타주 재생
-	 * - Case B: 전투가 비활성화된 상태 → Equip 몽타주 재생
+	 *	Case A: 전투가 활성화된 상태 → Unequip 몽타주 재생
+	 *	Case B: 전투가 비활성화된 상태 → Equip 몽타주 재생
 	 */
 
 	const APAWeapon* CurrentWeapon = CombatComponent->GetCurrentWeapon();
 	if (!CurrentWeapon)
+	{
 		return;
-	
+	}
+		
 	if (CanToggleCombat())
 	{
 		StateComponent->SetState(FGameplayTag::RequestGameplayTag(TEXT("Character.State.GeneralAction")));
@@ -282,11 +291,76 @@ void APACharacter::ToggleCombat()
 	}
 }
 
+void APACharacter::EnterCombat()
+{
+	ensure(CombatComponent);
+	
+	if (!CombatComponent->IsCombatEnabled())
+	{
+		ToggleCombat();
+	}
+}
+
+void APACharacter::Attack()
+{
+	/*
+	 * 우선 순위
+	 *	Case A: 질주 중일 경우, 돌진 공격
+	 *	Case B: 그 외의 경우, 일반 공격
+	 */
+	
+	FGameplayTag AttackType;
+
+	if (bIsSprinting)
+	{
+		// Case A
+		AttackType = FGameplayTag::RequestGameplayTag(TEXT("Character.Attack.Running"));
+	}
+	else
+	{
+		// Case B
+		AttackType = FGameplayTag::RequestGameplayTag(TEXT("Character.Attack.Light"));
+	}
+	
+	if (!CanExecuteComboAttack(AttackType))
+	{
+		return;
+	}
+
+	ExecuteComboAttack(AttackType);
+}
+
+void APACharacter::SpecialAttack()
+{
+	FGameplayTag AttackType = FGameplayTag::RequestGameplayTag(TEXT("Character.Attack.Special"));
+
+	if (!CanExecuteComboAttack(AttackType))
+	{
+		return;
+	}
+
+	ExecuteComboAttack(AttackType);
+}
+
+void APACharacter::HeavyAttack()
+{
+	FGameplayTag AttackType = FGameplayTag::RequestGameplayTag(TEXT("Character.Attack.Heavy"));
+	
+	if (!CanExecuteComboAttack(AttackType))
+	{
+		return;
+	}
+
+	ExecuteComboAttack(AttackType);
+}
+
 bool APACharacter::IsMoving() const
 {
 	if (UCharacterMovementComponent* MovementComp = GetCharacterMovement())
+	{
 		return MovementComp->Velocity.Size2D() > 0.3f && !MovementComp->GetCurrentAcceleration().IsNearlyZero();
-
+	}
+	
 	return false;
 }
 
@@ -300,4 +374,154 @@ bool APACharacter::CanToggleCombat() const
 	BlockStates.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Character.State.GeneralAction")));
 
 	return !StateComponent->IsCurrentStateIn(BlockStates);
+}
+
+void APACharacter::EnableComboWindow()
+{
+	 bIsComboInputEnabled = true;
+}
+
+void APACharacter::DisableComboWindow()
+{
+	ensure(CombatComponent);
+	
+	bIsComboInputEnabled = false;
+
+	if (!bIsComboInputQueued)
+	{
+		return;
+	}
+
+	bIsComboInputQueued = false;
+	ComboCounter++;
+	DoAttack(CombatComponent->GetLastAttackType());
+}
+
+void APACharacter::FinishAttack()
+{
+	ensure(StateComponent);
+	
+	StateComponent->SetMovementEnabled(true);
+	StateComponent->ClearState();
+	ResetCombo();
+}
+
+void APACharacter::ExecuteComboAttack(const FGameplayTag& AttackType)
+{
+	/*
+	 * 콤보 공격
+	 *	Case A: 공격 중인 경우
+	 *	Case B: 공격 중이 아닌 경우
+	 */
+
+	ensure(StateComponent);
+
+	FGameplayTagContainer CheckTags;
+	CheckTags.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Character.State.Attacking")));
+
+	if (StateComponent->IsCurrentStateIn(CheckTags))
+	{
+		// Case A
+		if (bIsComboInputEnabled)
+		{
+			bIsComboInputQueued = true;
+		}
+		
+		return;
+	}
+
+	// Case B
+	ResetCombo();
+	DoAttack(AttackType);
+}
+
+bool APACharacter::CanExecuteComboAttack(const FGameplayTag& AttackType) const
+{
+	ensure(StateComponent);
+	ensure(CombatComponent);
+	ensure(AttributeComponent);
+
+	/*
+	 * 콤보 공격 조건
+	 *	Cond 1: 무기를 장착 중인 상태
+	 *	Cond 2: 전투가 활성화된 상태
+	 *	Cond 3: 현재 상태가 공격 가능한 상태
+	 *	Cond 4: 스태미나가 충분한 상태
+	 */
+	
+	const APAWeapon* CurrentWeapon = CombatComponent->GetCurrentWeapon();
+	if (!IsValid(CurrentWeapon))
+	{
+		return false;
+	}
+
+	if (!CombatComponent->IsCombatEnabled())
+	{
+		return false;
+	}
+
+	FGameplayTagContainer CheckTags;
+	CheckTags.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Character.State.Rolling")));
+	CheckTags.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Character.State.GeneralAction")));
+	if (StateComponent->IsCurrentStateIn(CheckTags))
+	{
+		return false;
+	}
+
+	const float StaminaCost = CurrentWeapon->GetStaminaCost(AttackType);
+	if (!AttributeComponent->HasEnoughStamina(StaminaCost))
+	{
+		return false;
+	}
+	
+	return true;
+}
+
+void APACharacter::DoAttack(const FGameplayTag& AttackType)
+{
+	ensure(StateComponent);
+	ensure(AttributeComponent);
+	ensure(CombatComponent);
+
+	/*
+	 * 공격
+	 *	Proc 1: Attack Type 캐싱
+	 *	Proc 2: '공격 중'으로 상태 변경
+	 *	Proc 3: 입력 차단
+	 *	Proc 4: 스태미나 소모
+	 *	Proc 5: 스태미나 재생 중단
+	 *	Proc 6: 스태미나 재생 예약
+	 *	Proc 7: 몽타주 재생
+	 */
+
+	const APAWeapon* CurrentWeapon = CombatComponent->GetCurrentWeapon();
+	if (!IsValid(CurrentWeapon))
+	{
+		return;
+	}
+
+	CombatComponent->SetLastAttackType(AttackType);
+	
+	StateComponent->SetState(FGameplayTag::RequestGameplayTag(TEXT("Character.State.Attacking")));
+	StateComponent->SetMovementEnabled(false);
+
+	const float StaminaCost = CurrentWeapon->GetStaminaCost(AttackType);
+	AttributeComponent->DecreaseStamina(StaminaCost);
+	AttributeComponent->RegenerateStamina(false);
+	AttributeComponent->RegenerateStamina(true, 1.5f);
+
+	UAnimMontage* Montage = CurrentWeapon->GetMontageByTag(AttackType, ComboCounter);
+	if (!Montage)
+	{
+		ComboCounter = 0;
+		Montage = CurrentWeapon->GetMontageByTag(AttackType, 0);
+	}
+	PlayAnimMontage(Montage);
+}
+
+void APACharacter::ResetCombo()
+{
+	ComboCounter = 0;
+	bIsComboInputEnabled = false;
+	bIsComboInputQueued = false;
 }

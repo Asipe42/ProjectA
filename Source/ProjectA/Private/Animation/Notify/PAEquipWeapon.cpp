@@ -1,18 +1,18 @@
 // Copyright Modin
 
 
-#include "Animation/AnimNotify_PAEquipWeapon.h"
+#include "Animation/Notify/PAEquipWeapon.h"
 
 #include "Combat/PACombatComponent.h"
 
-void UAnimNotify_PAEquipWeapon::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
+void UPAEquipWeapon::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
 {
 	Super::Notify(MeshComp, Animation, EventReference);
 
 	/*
 	 * Notify
-	 *  - Proc 1: 전투 상태로 전환
-	 *  - Proc 2: 무기 장착/해제
+	 *  Proc 1: 전투 상태로 전환
+	 *  Proc 2: 무기 장착/해제
 	 */
 
 	const AActor* Owner = MeshComp->GetOwner();
@@ -41,9 +41,6 @@ void UAnimNotify_PAEquipWeapon::Notify(USkeletalMeshComponent* MeshComp, UAnimSe
 		SocketName = CurrentWeapon->GetUnequipSocketName();
 	}
 
-	// Proc 1: 전투 상태로 전환
 	CombatComponent->SetCombatEnabled(bCombatEnabled);
-
-	// Proc 2: 무기 장착/해제
 	CurrentWeapon->AttachTo(SocketName);
 }

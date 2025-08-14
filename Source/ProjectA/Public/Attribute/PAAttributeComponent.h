@@ -19,7 +19,7 @@ public:
 
 	/** Stamina Method */
 	void DecreaseStamina(float Amount);
-	void RegenerateStamina(bool bEnable);
+	void RegenerateStamina(bool bEnable, float Delay = 0.0f);
 	bool HasEnoughStamina(float Amount) const;
 
 	FORCEINLINE float GetCurrentStamina() const { return CurrentStamina; }

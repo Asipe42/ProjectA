@@ -16,7 +16,7 @@ void UPAAttributeComponent::DecreaseStamina(const float Amount)
 	OnAttributeChange.Broadcast(EAttributeType::Stamina, GetStaminaRatio());
 }
 
-void UPAAttributeComponent::RegenerateStamina(bool bEnable)
+void UPAAttributeComponent::RegenerateStamina(bool bEnable, float Delay)
 {
 	if (bEnable)
 	{
@@ -38,7 +38,8 @@ void UPAAttributeComponent::RegenerateStamina(bool bEnable)
 					}
 				},
 				0.1f,
-				true
+				true,
+				Delay
 			);
 		}
 	}

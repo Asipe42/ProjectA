@@ -17,19 +17,30 @@ class PROJECTA_API UPACombatComponent : public UActorComponent
 public:	
 	UPACombatComponent();
 
-	/** Weapon */
+/** Weapon */
+public:
 	void SetWeapon(APAWeapon* NewWeapon);
 	FORCEINLINE APAWeapon* GetCurrentWeapon() const { return CurrentWeapon; }
-
-	/** Combat Enable */
-	FORCEINLINE void SetCombatEnabled(const bool bEnable) { bIsCombatEnabled = bEnable; }
-	FORCEINLINE bool IsCombatEnabled() const { return bIsCombatEnabled; }
 
 protected:
 	UPROPERTY()
 	APAWeapon* CurrentWeapon;
+	
+/** Combat Enable */
+public:
+	FORCEINLINE void SetCombatEnabled(const bool bEnable) { bIsCombatEnabled = bEnable; }
+	FORCEINLINE bool IsCombatEnabled() const { return bIsCombatEnabled; }
 
 private:
 	UPROPERTY(EditAnywhere)
 	bool bIsCombatEnabled = true;
+
+/** Attack */
+public:
+	FORCEINLINE FGameplayTag GetLastAttackType() const { return LastAttackType; };
+	FORCEINLINE void SetLastAttackType(const FGameplayTag& NewAttackTypeTag) { LastAttackType = NewAttackTypeTag; };
+
+protected:
+	UPROPERTY(VisibleAnywhere)
+	FGameplayTag LastAttackType;
 };

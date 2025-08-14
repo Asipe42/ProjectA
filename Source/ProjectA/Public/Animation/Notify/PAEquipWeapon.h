@@ -5,13 +5,13 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "Animation/AnimNotifies/AnimNotify.h"
-#include "AnimNotify_PAEquipWeapon.generated.h"
+#include "PAEquipWeapon.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class PROJECTA_API UAnimNotify_PAEquipWeapon : public UAnimNotify
+class PROJECTA_API UPAEquipWeapon : public UAnimNotify
 {
 	GENERATED_BODY()
 
