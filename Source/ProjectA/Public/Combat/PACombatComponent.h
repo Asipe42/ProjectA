@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Equipment/PAWeapon.h"
+#include "Equipment/Weapon/PAWeapon.h"
 #include "PACombatComponent.generated.h"
 
 

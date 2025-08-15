@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PAWeaponCollisionComponent.h"
 #include "Data/PAWeaponMontageSet.h"
 #include "Equipment/PAEquipment.h"
 #include "PAWeapon.generated.h"
@@ -16,7 +17,13 @@ class PROJECTA_API APAWeapon : public APAEquipment
 {
 	GENERATED_BODY()
 
-	/** Equipment */
+public:
+	APAWeapon();
+	
+protected:
+	virtual void BeginPlay() override;
+	
+/** Equipment */
 public:
 	virtual void Equip() override;
 	virtual void Unequip() override;
@@ -31,7 +38,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Equipment | Socket")
 	FName UnequipSocketName;
 
-	/** Montage Action */
+/** Montage Action */
 public:
 	UAnimMontage* GetMontageByTag(const FGameplayTag& Tag, const int32 Index = 0) const;
 
@@ -42,14 +49,34 @@ protected:
 	UPROPERTY()
 	UPACombatComponent* CombatComponent;
 
+private:
+	void InitializeCombat();
+	
 /** Attack */
 public:
 	float GetStaminaCost(const FGameplayTag& Tag) const;
-	
+	float GetAttackDamage() const;
+
 protected:
-	UPROPERTY()
+	UPROPERTY(EditAnywhere)
 	TMap<FGameplayTag, float> StaminaCostMap;
-	
+
+	UPROPERTY(EditAnywhere)
+	float BaseDamage = 15.f;
+
+	UPROPERTY(EditAnywhere)
+	TMap<FGameplayTag, float> DamageMultiplierMap;
+
+/** Weapon Collision */
+public:
+	FORCEINLINE UPAWeaponCollisionComponent* GetWeaponCollisionComponent() const { return WeaponCollisionComponent; }
+
 protected:
-	virtual void BeginPlay() override;
+	void OnHitActor(const FHitResult& HitResult);
+	
+	UPROPERTY(VisibleAnywhere)
+	UPAWeaponCollisionComponent* WeaponCollisionComponent;
+	
+private:
+	void SetupWeaponCollision();
 };
