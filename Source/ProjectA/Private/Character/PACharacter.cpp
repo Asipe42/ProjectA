@@ -58,7 +58,7 @@ void APACharacter::Tick(float DeltaTime)
 
 	if (bIsSprinting && AttributeComponent)
 	{
-		AttributeComponent->DecreaseStamina(5.f * DeltaTime); 
+		AttributeComponent->ModifyStamina(-5.f * DeltaTime); 
 
 		if (!AttributeComponent->HasEnoughStamina(0.1f))
 		{
@@ -211,7 +211,7 @@ void APACharacter::Rolling()
 	if (AttributeComponent->HasEnoughStamina(15.f))
 	{
 		PlayAnimMontage(RollingMontage);
-		AttributeComponent->DecreaseStamina(15.f);
+		AttributeComponent->ModifyStamina(-15.f);
 		AttributeComponent->RegenerateStamina(false);
 		StateComponent->SetMovementEnabled(false);
 		StateComponent->SetState(FGameplayTag::RequestGameplayTag(TEXT("Character.State.Rolling")));
@@ -505,8 +505,8 @@ void APACharacter::DoAttack(const FGameplayTag& AttackType)
 	StateComponent->SetState(FGameplayTag::RequestGameplayTag(TEXT("Character.State.Attacking")));
 	StateComponent->SetMovementEnabled(false);
 
-	const float StaminaCost = CurrentWeapon->GetStaminaCost(AttackType);
-	AttributeComponent->DecreaseStamina(StaminaCost);
+	const float StaminaCost = CurrentWeapon->GetStaminaCost(AttackType) * -1.f;
+	AttributeComponent->ModifyStamina(StaminaCost);
 	AttributeComponent->RegenerateStamina(false);
 	AttributeComponent->RegenerateStamina(true, 1.5f);
 

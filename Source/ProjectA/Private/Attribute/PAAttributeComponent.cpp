@@ -10,9 +10,9 @@ UPAAttributeComponent::UPAAttributeComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UPAAttributeComponent::DecreaseStamina(const float Amount)
+void UPAAttributeComponent::ModifyStamina(const float Amount)
 {
-	CurrentStamina = FMath::Clamp(CurrentStamina - Amount, 0, MaxStamina);
+	CurrentStamina = FMath::Clamp(CurrentStamina + Amount, 0, MaxStamina);
 	OnAttributeChange.Broadcast(EAttributeType::Stamina, GetStaminaRatio());
 }
 
@@ -52,4 +52,22 @@ void UPAAttributeComponent::RegenerateStamina(bool bEnable, float Delay)
 bool UPAAttributeComponent::HasEnoughStamina(const float Amount) const
 {
 	return CurrentStamina >= Amount;
+}
+
+void UPAAttributeComponent::ModifyHealth(float Amount)
+{
+	if (FMath::IsNearlyZero(Amount) || CurrentHealth <= 0.f)
+		return;
+
+	CurrentHealth = FMath::Clamp(CurrentHealth + Amount, 0.f, MaxHealth);
+
+	if (OnAttributeChange.IsBound())
+	{
+		OnAttributeChange.Broadcast(EAttributeType::Health, GetHealthRatio());
+	}
+
+	if (CurrentHealth <= 0.f && OnDeath.IsBound())
+	{
+		OnDeath.Broadcast();
+	}
 }
