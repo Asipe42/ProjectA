@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "Interfaces/PAInteractableInterface.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Targeting/PATargetingComponent.h"
 
 APACharacter::APACharacter()
 {
@@ -21,6 +22,7 @@ APACharacter::APACharacter()
 	SetupAttributeComponent();
 	SetupStateComponent();
 	SetupCombatComponent();
+	SetupTargetingComponent();
 }
 
 void APACharacter::BeginPlay()
@@ -49,6 +51,9 @@ void APACharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		EnhancedInput->BindAction(AttackAction, ETriggerEvent::Canceled, this, &APACharacter::Attack);
 		EnhancedInput->BindAction(HeavyAttackAction, ETriggerEvent::Started, this, &APACharacter::EnterCombat);
 		EnhancedInput->BindAction(HeavyAttackAction, ETriggerEvent::Completed, this, &APACharacter::HeavyAttack);
+		EnhancedInput->BindAction(LockOnAction, ETriggerEvent::Started, this, &ThisClass::LockOn);
+		EnhancedInput->BindAction(LockOnLeftAction, ETriggerEvent::Started, this, &ThisClass::LockOnLeft);
+		EnhancedInput->BindAction(LockOnRightAction, ETriggerEvent::Started, this, &ThisClass::LockOnRight);
 	}
 }
 
@@ -113,6 +118,11 @@ void APACharacter::SetupStateComponent()
 void APACharacter::SetupCombatComponent()
 {
 	CombatComponent = CreateDefaultSubobject<UPACombatComponent>(TEXT("Combat"));
+}
+
+void APACharacter::SetupTargetingComponent()
+{
+	TargetingComponent = CreateDefaultSubobject<UPATargetingComponent>(TEXT("Targeting"));
 }
 
 void APACharacter::InitializeInputSystem()
@@ -352,6 +362,21 @@ void APACharacter::HeavyAttack()
 	}
 
 	ExecuteComboAttack(AttackType);
+}
+
+void APACharacter::LockOn()
+{
+	TargetingComponent->ToggleLockOn();
+}
+
+void APACharacter::LockOnLeft()
+{
+	TargetingComponent->SwitchTargetLeft();
+}
+
+void APACharacter::LockOnRight()
+{
+	TargetingComponent->SwitchTargetRight();
 }
 
 bool APACharacter::IsMoving() const

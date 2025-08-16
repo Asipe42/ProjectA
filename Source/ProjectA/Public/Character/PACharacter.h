@@ -11,6 +11,7 @@
 #include "UI/PAMainHUD.h"
 #include "PACharacter.generated.h"
 
+class UPATargetingComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
@@ -46,6 +47,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	UPACombatComponent* CombatComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Targeting", meta = (AllowPrivateAccess = "true"))
+	UPATargetingComponent* TargetingComponent;
+
 private:
 	void SetupCamera();
 	void SetupRotation();
@@ -53,6 +57,7 @@ private:
 	void SetupAttributeComponent();
 	void SetupStateComponent();
 	void SetupCombatComponent();
+	void SetupTargetingComponent();
 
 /** Input System */
 protected:
@@ -67,6 +72,9 @@ protected:
 	void Attack();
 	void SpecialAttack();
 	void HeavyAttack();
+	void LockOn();
+	void LockOnLeft();
+	void LockOnRight();
 	
 	bool IsMoving() const;
 	bool CanToggleCombat() const;
@@ -97,6 +105,15 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	UInputAction* HeavyAttackAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* LockOnAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* LockOnLeftAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* LockOnRightAction;
 
 private:
 	void InitializeInputSystem();
